@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from news.views import login, logout, stories
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/login', login),
+    path('api/logout', logout),
+    path('api/stories', stories),
 ]
