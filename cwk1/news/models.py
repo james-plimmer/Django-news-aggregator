@@ -4,7 +4,7 @@ class Author(models.Model):
     name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=50)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, default=None)
 
     def __str__(self):
         return self.name

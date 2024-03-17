@@ -1,11 +1,14 @@
 from datetime import timezone
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect, render
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from models import Story
+from django.views.decorators.csrf import csrf_exempt
+from cwk1 import settings
+from news.models import Story
 
-def login(request):
+@csrf_exempt
+def login_user(request):
     if request.method == "POST":
         # get form credentials
         username = request.POST.get('username')
@@ -28,11 +31,15 @@ def login(request):
 
 # can only log out if logged in
 @login_required
-def logout(request):
+@csrf_exempt
+def logout_user(request):
     if request.method == "POST":
         # logout user
-        logout(request)
-        return HttpResponse("Logout successful", status=200)
+        logout(request, )
+        return HttpResponseRedirect(settings.LOGOUT_REDIRECT_URL)
+
+def logged_out(request):
+    return HttpResponse("Logout successful - goodbye", content_type='text/plain', status=200)
     
     
 def stories(request):
