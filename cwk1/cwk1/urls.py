@@ -16,12 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from news.views import login_user, logout_user, stories, logged_out
+from news.views import login_user, logout_user, stories
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login', login_user),
     path('api/logout', logout_user),
     path('api/stories', stories),
-    path('api/loggedout', logged_out, name='logged_out')
 ]

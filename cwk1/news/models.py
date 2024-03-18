@@ -1,13 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Author(models.Model):
-    name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, unique=True)
-    password = models.CharField(max_length=50)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, default=None)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.user.username
     
 class Story(models.Model):
     headline = models.CharField(max_length=64)
@@ -18,4 +16,4 @@ class Story(models.Model):
     details = models.CharField(max_length=128)
 
     def __str__(self):
-        return self.title
+        return self.headline

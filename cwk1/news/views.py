@@ -1,11 +1,12 @@
-from datetime import timezone
-from django.shortcuts import redirect, render
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+import datetime
+from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from cwk1 import settings
 from news.models import Story
+import json
+
 
 @csrf_exempt
 def login_user(request):
@@ -24,45 +25,57 @@ def login_user(request):
         # login user if authenticated
         if user is not None:
             login(request, user)
-            return HttpResponse("Login successful", status=200)
+            return HttpResponse("Login successful!", status=200)
         else:
             # return 401 if user is not authenticated
             return HttpResponseBadRequest("Invalid username or password", status=401)
+    
+    return HttpResponseBadRequest("Only POST requests are allowed", status=503)
 
-# can only log out if logged in
-@login_required
 @csrf_exempt
+@login_required
 def logout_user(request):
     if request.method == "POST":
+        # ensure user is logged in
+        if not request.user.is_authenticated:
+            return HttpResponseBadRequest("User is not logged in", status=503)
         # logout user
-        logout(request, )
-        return HttpResponseRedirect(settings.LOGOUT_REDIRECT_URL)
+        logout(request)
+        return HttpResponse("Logout successful", status=200)
+    
 
-def logged_out(request):
-    return HttpResponse("Logout successful - goodbye", content_type='text/plain', status=200)
-    
-    
+@csrf_exempt
 def stories(request):
+
     if request.method == "POST":
+        # ensure user is logged in
+        if not request.user.is_authenticated:
+            return HttpResponseBadRequest("User is not logged in", status=503)
+        
         # get form data from json payload
-        headline = request.POST.get('headline')
-        category = request.POST.get('category')
-        region = request.POST.get('region')
-        details = request.POST.get('details')
+        json_data = json.loads(request.body)
+        headline = json_data.get('headline')
+        category = json_data.get('category')
+        region = json_data.get('region')
+        details = json_data.get('details')
         
         # check if headline, category, region and details are not empty
         if not headline or not category or not region or not details:
             return HttpResponseBadRequest("Headline, category, region and details are required", status=503)
         
-        # check if user is logged in
-        if request.user.is_authenticated:
-            # create story
-            story = Story(headline=headline, category=category, region=region, details=details, date_published=timezone.now(), author=request.user.author)
-            story.save()
-            
-            return HttpResponse("Story posted", status=201)
+        # check region and category are valid choices
+        if category not in dict(Story._meta.get_field('category').flatchoices):
+            return HttpResponseBadRequest("Invalid category", status=503)
+        if region not in dict(Story._meta.get_field('region').flatchoices):
+            return HttpResponseBadRequest("Invalid region", status=503)
         
-        return HttpResponseBadRequest("User is not logged in", status=503)
+        # create story
+        story = Story(headline=headline, category=category, region=region, details=details, pub_date=datetime.date.today(), author=request.user.author)
+        story.save()
+            
+        return HttpResponse("Story posted", status=201)
+        
+        
 
     elif request.method == "GET":
         # get category region and date from form payload
