@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/login', login_user),
     path('api/logout', logout_user),
     path('api/stories', stories),
+    path('api/stories/<int:story_id>', stories),
 ]

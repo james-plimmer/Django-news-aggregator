@@ -4,9 +4,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from news.models import Story
 import json
+from django.db.models import Q
 
-
-@csrf_exempt
 def login_user(request):
     if request.method == "POST":
         # get form credentials
@@ -30,7 +29,6 @@ def login_user(request):
     
     return HttpResponseBadRequest("Only POST requests are allowed.", status=503)
 
-@csrf_exempt
 def logout_user(request):
     if request.method == "POST":
         # ensure user is logged in
@@ -41,8 +39,7 @@ def logout_user(request):
         return HttpResponse("Logout successful- Goodbye!", status=200)
     
 
-@csrf_exempt
-def stories(request):
+def stories(request, story_id=None):
 
     if request.method == "POST":
         # ensure user is logged in
@@ -88,18 +85,19 @@ def stories(request):
         if not category and not region and not date:
             return HttpResponseBadRequest("Category, region and date are required.", status=503)
         
-        # get stories
-        stories = Story.objects.all()
+        filters = Q()
+
         # apply filters
         if category != '*':
             if category not in dict(Story._meta.get_field('category').flatchoices):
                 return HttpResponseBadRequest("Invalid category.", status=503)
-            stories = stories.filter(category=category)
+            filters &= Q(category=category)
+
             
         if region != '*':
             if region not in dict(Story._meta.get_field('region').flatchoices):
                 return HttpResponseBadRequest("Invalid region.", status=503)
-            stories = stories.filter(region=region)
+            filters &= Q(region=region)
             
         if date != '*':
             # check if date is in dd/mm/yyyy format
@@ -107,10 +105,11 @@ def stories(request):
                 return HttpResponseBadRequest("Invalid date format. Use dd/mm/yyyy.", status=503)
             # convert date from dd/mm/yyyy to datetime object
             date = datetime.datetime.strptime(date, '%d/%m/%Y').date()
-                
-            # filter stories with pub_date greater than or equal to date
-            stories = stories.filter(pub_date__gte=date)
-
+            filters &= Q(pub_date__gte=date)
+            
+        # get stories
+        stories = Story.objects.filter(filters)
+        
         story_array = []
         
         for story in stories:
@@ -126,5 +125,28 @@ def stories(request):
             return HttpResponse("No stories found.", status=404)
         else:
             return HttpResponse(json.dumps({"stories" : story_array}), status=200)
+    
+    elif request.method == "DELETE":
+        # ensure user is logged in
+        if not request.user.is_authenticated:
+            return HttpResponseBadRequest("User is not logged in!", status=503)
+        
+        if not story_id:
+            return HttpResponseBadRequest("Story id is required.", status=503)
+        
+        # check if story_id is valid
+        try:
+            story = Story.objects.get(id=story_id)
+        except Story.DoesNotExist:
+            return HttpResponseBadRequest("Story not found.", status=503)
+        
+        # check if user is author of story
+        if request.user.author != story.author:
+            return HttpResponseBadRequest("User is not author of story.", status=503)
+        
+        # delete story
+        story.delete()
+        return HttpResponse("Story deleted!", status=200)
 
-    return HttpResponseBadRequest("Only GET and POST requests are allowed.", status=503)
+    return HttpResponseBadRequest("Only GET, POST and DELETE requests are allowed.", status=503)
+    

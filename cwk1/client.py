@@ -15,8 +15,12 @@ header = {'Content-Type': 'application/json'}
 r = session.post('http://127.0.0.1:8000/api/stories', data=json.dumps(data), headers=header)
 print(r.text)
 
+# delete a story
+r = session.delete('http://127.0.0.1:8000/api/stories/30')
+print(r.text)
+
 # retrieve stories
-r = session.get('http://127.0.0.1:8000/api/stories?story_cat=pol&story_region=w&story_date=01/03ds/2024')
+r = session.get('http://127.0.0.1:8000/api/stories?story_cat=*&story_region=*&story_date=*')
 if r.status_code != 200:
     print(r.text)
 else:
