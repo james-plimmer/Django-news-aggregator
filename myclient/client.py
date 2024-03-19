@@ -105,8 +105,15 @@ while True:
             
             print("\n\nGetting stories from " + url)
             r = session.get(f'{url}/api/stories?story_cat={cat}&story_region={reg}&story_date={date}')
-            for story in r.json().get('stories'):
-                print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
+            # error getting story
+            if r.status_code != 200:
+                if r.status_code == 404:
+                    print(r.text())
+                else :
+                    print("Error " + str(r.status_code) + " getting stories from " + url + ".\n")
+            else:
+                for story in r.json().get('stories'):
+                    print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
         
         # if not specified, get the first 20 agencies
         else:
@@ -116,20 +123,23 @@ while True:
                 url = a.get('url')
                 print("\n\nGetting stories from " + url)
                 r = session.get(f'{url}/api/stories?story_cat={cat}&story_region={reg}&story_date={date}')
+                # error getting story
                 if r.status_code != 200:
-                    print(r.text)
+                    if r.status_code == 404:
+                        print(r.text())
+                    else :
+                        print("Error " + str(r.status_code) + " getting stories from " + url + ".\n")
+                    
                     count += 1
                     if count == 20:
                         break
                     continue
                 
-                if r.json().get('stories') != None:
-                    try:
-                        for story in r.json().get('stories'):
-                            print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
-                    except json.JSONDecodeError:
-                        print("\n\nError getting stories.")
-                
+                # if stories are found
+                else:
+                    for story in r.json().get('stories'):
+                        print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
+            
                 count += 1
                 if count == 20:
                     break
