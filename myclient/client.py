@@ -2,37 +2,6 @@ import requests
 import json
 
 session = requests.Session()
-
-# # login
-# data = {"username": 'ammar', "password": 'comp3011'}
-# header = {'Content-Type': 'application/x-www-form-urlencoded'}
-# r = session.post('http://127.0.0.1:8000/api/login', data=data, headers=header)
-# print(r.text)
-
-# # create story
-# data = {"headline": 'testing', "category": 'art', "region": 'eu', "details": 'testing new story'}
-# header = {'Content-Type': 'application/json'}
-# r = session.post('http://127.0.0.1:8000/api/stories', data=json.dumps(data), headers=header)
-# print(r.text)
-
-# # delete a story
-# r = session.delete('http://127.0.0.1:8000/api/stories')
-# print(r.text)
-
-# # retrieve stories
-# r = session.get('http://127.0.0.1:8000/api/stories?story_cat=*&story_region=*&story_date=*')
-# if r.status_code != 200:
-#     print(r.text)
-# else:
-#     stories = r.json().get('stories')
-#     for story in stories:
-#         print(story)
-
-# # logout
-# r = session.post('http://127.0.0.1:8000/api/logout')
-# print(r.text)
-
-session = requests.Session()
 logged_in_url = None
 url = None
 
@@ -60,7 +29,7 @@ while True:
         password = input("Enter password: ")
         data = {"username": username, "password": password}
         header = {'Content-Type': 'application/x-www-form-urlencoded'}
-        r = session.post(f'{logged_in_url}/api/login', data=data, headers=header)
+        r = session.post(f'https://{logged_in_url}/api/login', data=data, headers=header)
         print("\n" + r.text)
         
         
@@ -68,7 +37,7 @@ while True:
         if not session.cookies:
             print("You are not logged in.")
             continue
-        r = session.post(f'{logged_in_url}/api/logout')
+        r = session.post(f'https://{logged_in_url}/api/logout')
         logged_in_url = None
         print("\nLogged out.")
         
@@ -83,7 +52,7 @@ while True:
         details = input("Enter details: ")
         data = {"headline": headline, "category": category, "region": region, "details": details}
         header = {'Content-Type': 'application/json'}
-        r = session.post(f'{logged_in_url}/api/stories', data=json.dumps(data), headers=header)
+        r = session.post(f'https://{logged_in_url}/api/stories', data=json.dumps(data), headers=header)
         print("\n" + r.text)
         
         
@@ -137,7 +106,7 @@ while True:
             print("\n\nGetting stories from " + url)
             r = session.get(f'{url}/api/stories?story_cat={cat}&story_region={reg}&story_date={date}')
             for story in r.json().get('stories'):
-                print(story.get('headline'))
+                print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
         
         # if not specified, get the first 20 agencies
         else:
@@ -157,7 +126,7 @@ while True:
                 if r.json().get('stories') != None:
                     try:
                         for story in r.json().get('stories'):
-                            print(story.get('headline'))
+                            print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
                     except json.JSONDecodeError:
                         print("\n\nError getting stories.")
                 
@@ -169,7 +138,7 @@ while True:
         r = session.get('http://newssites.pythonanywhere.com/api/directory')
         agencies = r.json()
         for a in agencies:
-            print(a.get('agency_name') + " " + a.get('url') + " " + a.get('agency_code'))
+            print(a.get('agency_name') + " - " + a.get('url') + " - " + a.get('agency_code'))
     
     
     if choice.lower().startswith("delete"):
@@ -177,6 +146,6 @@ while True:
             print("You are not logged in.")
             continue
         story_id = choice.split(" ")[1]
-        r = session.delete(f'{logged_in_url}/api/stories/{story_id}')
+        r = session.delete(f'https://{logged_in_url}/api/stories/{story_id}')
         print("\n" + r.text)
         

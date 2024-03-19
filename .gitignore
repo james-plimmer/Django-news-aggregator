@@ -20,3 +20,5 @@ cwk1_env/
 
 # Dependency management
 pip-lock.txt
+
+myclient/readme.txt
