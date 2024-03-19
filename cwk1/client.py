@@ -33,6 +33,7 @@ session = requests.Session()
 # print(r.text)
 
 session = requests.Session()
+logged_in_url = None
 url = None
 
 while True:
@@ -54,12 +55,12 @@ while True:
 
     if choice.lower().startswith("login") and len(choice.split(" ")) == 2:
             
-        url = choice.split(" ")[1]
+        logged_in_url = choice.split(" ")[1]
         username = input("Enter username: ")
         password = input("Enter password: ")
         data = {"username": username, "password": password}
         header = {'Content-Type': 'application/x-www-form-urlencoded'}
-        r = session.post(f'http://{url}/api/login', data=data, headers=header)
+        r = session.post(f'{logged_in_url}/api/login', data=data, headers=header)
         print("\n" + r.text)
         
         
@@ -67,8 +68,8 @@ while True:
         if not session.cookies:
             print("You are not logged in.")
             continue
-        r = session.post(f'http://{url}/api/logout')
-        url = None
+        r = session.post(f'{logged_in_url}/api/logout')
+        logged_in_url = None
         print("\nLogged out.")
         
         
@@ -82,7 +83,7 @@ while True:
         details = input("Enter details: ")
         data = {"headline": headline, "category": category, "region": region, "details": details}
         header = {'Content-Type': 'application/json'}
-        r = session.post(f'http://{url}/api/stories', data=json.dumps(data), headers=header)
+        r = session.post(f'{logged_in_url}/api/stories', data=json.dumps(data), headers=header)
         print("\n" + r.text)
         
         
@@ -168,7 +169,7 @@ while True:
         r = session.get('http://newssites.pythonanywhere.com/api/directory')
         agencies = r.json()
         for a in agencies:
-            print(a.get('url'))
+            print(a.get('agency_name') + " " + a.get('url') + " " + a.get('agency_code'))
     
     
     if choice.lower().startswith("delete"):
@@ -176,6 +177,6 @@ while True:
             print("You are not logged in.")
             continue
         story_id = choice.split(" ")[1]
-        r = session.delete(f'http://{url}/api/stories/{story_id}')
+        r = session.delete(f'{logged_in_url}/api/stories/{story_id}')
         print("\n" + r.text)
         
