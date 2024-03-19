@@ -59,9 +59,9 @@ def stories(request, story_id=None):
         
         # check region and category are valid choices
         if category not in dict(Story._meta.get_field('category').flatchoices):
-            return HttpResponseBadRequest("Invalid category.", status=503)
+            return HttpResponseBadRequest("Invalid category - must be art, tech, pol or trivia.", status=503)
         if region not in dict(Story._meta.get_field('region').flatchoices):
-            return HttpResponseBadRequest("Invalid region.", status=503)
+            return HttpResponseBadRequest("Invalid region - must be w, eu or uk.", status=503)
         
         # create story
         story = Story(headline=headline, 
@@ -90,13 +90,13 @@ def stories(request, story_id=None):
         # apply filters
         if category != '*':
             if category not in dict(Story._meta.get_field('category').flatchoices):
-                return HttpResponseBadRequest("Invalid category.", status=503)
+                return HttpResponseBadRequest("Invalid category - must be art, tech, pol or trivia.", status=503)
             filters &= Q(category=category)
 
             
         if region != '*':
             if region not in dict(Story._meta.get_field('region').flatchoices):
-                return HttpResponseBadRequest("Invalid region.", status=503)
+                return HttpResponseBadRequest("Invalid region - must be w, eu or uk.", status=503)
             filters &= Q(region=region)
             
         if date != '*':
@@ -125,6 +125,7 @@ def stories(request, story_id=None):
             return HttpResponse("No stories found.", status=404)
         else:
             return HttpResponse(json.dumps({"stories" : story_array}), status=200)
+    
     
     elif request.method == "DELETE":
         # ensure user is logged in
