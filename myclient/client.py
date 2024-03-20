@@ -52,8 +52,10 @@ while True:
             print("You are not logged in.")
             continue
         r = session.post(f'https://{logged_in_url}/api/logout')
-        logged_in_url = None
-        print("\nLogged out.")
+        # check if logout was successful and reset logged_in_url if so
+        if r.status_code == 200:
+            logged_in_url = None
+        print("\n r.text")
         
         
     if choice.lower() == "post":
