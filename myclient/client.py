@@ -5,6 +5,20 @@ session = requests.Session()
 logged_in_url = None
 url = None
 
+def print_stories():
+    print("\n\nGetting stories from " + url)
+    r = session.get(f'{url}/api/stories?story_cat={cat}&story_region={reg}&story_date={date}')
+    # error getting story
+    if r.status_code != 200:
+        print("Error " + str(r.status_code) + " getting stories from " + url + ".\n")
+        # print error message if it is short, otherwise API has been poorly implemented 
+        if (len(r.text) < 1000):
+            print(r.text)
+    # if stories are found
+    else:
+        for story in r.json().get('stories'):
+            print(story.get('headline') + ", by " + story.get('author') + " : " + story.get('story_details') + "\n")
+
 while True:
     print("\n\n\n------")
     print("login <url>")
@@ -79,9 +93,6 @@ while True:
         reg = '*'
         date = '*'
         
-        # array to store stories
-        stories = []
-        
         # check for switch presence and set values
         # switch validation is done server-side
         if 'cat' in switches.keys():
@@ -103,46 +114,15 @@ while True:
                 print("Invalid agency code.")
                 continue
             
-            print("\n\nGetting stories from " + url)
-            r = session.get(f'{url}/api/stories?story_cat={cat}&story_region={reg}&story_date={date}')
-            # error getting story
-            if r.status_code != 200:
-                if r.status_code == 404:
-                    print(r.text())
-                else :
-                    print("Error " + str(r.status_code) + " getting stories from " + url + ".\n")
-            else:
-                for story in r.json().get('stories'):
-                    print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
+            print_stories()
         
         # if not specified, get the first 20 agencies
         else:
-            count = 0
+            agencies = agencies[:20]
             for a in agencies:
-                stories = []
                 url = a.get('url')
-                print("\n\nGetting stories from " + url)
-                r = session.get(f'{url}/api/stories?story_cat={cat}&story_region={reg}&story_date={date}')
-                # error getting story
-                if r.status_code != 200:
-                    if r.status_code == 404:
-                        print(r.text())
-                    else :
-                        print("Error " + str(r.status_code) + " getting stories from " + url + ".\n")
-                    
-                    count += 1
-                    if count == 20:
-                        break
-                    continue
-                
-                # if stories are found
-                else:
-                    for story in r.json().get('stories'):
-                        print(story.get('headline') + " | " + story.get('author') + " | " + story.get('story_details') + "\n")
-            
-                count += 1
-                if count == 20:
-                    break
+                print_stories()
+
         
     if choice.lower() == "list":
         r = session.get('http://newssites.pythonanywhere.com/api/directory')
